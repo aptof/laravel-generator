@@ -1,0 +1,12 @@
+# Ignore everything
+/*
+
+# But not ignore the following
+!.gitignore
+!README.md
+!/stubs
+!/app
+/app/*
+!/app/Console
+/app/Console/*
+!/app/Console/Commands

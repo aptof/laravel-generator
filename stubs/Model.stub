@@ -1,0 +1,32 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+class ModelStub extends Model
+{
+    use HasFactory;
+
+    /**
+     * Field that can be assigned
+     */
+    public $fillable = [];
+
+    /**
+     * Casts database value to respective type
+     * example boolean is saved in data base as 0 or 1
+     * cast it to boolean
+     */
+    public $casts = [
+        // 'is_admin' => 'boolean'
+    ];
+
+    /**
+     * Validation Rules
+     */
+    public static array $rules = [
+        //'description' => 'required|string|max:100'
+    ];
+}

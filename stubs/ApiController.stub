@@ -1,0 +1,38 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Models\ModelStub;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use App\Http\Controllers\BaseController;
+
+class ControllerStub extends BaseController
+{
+    public function index()
+    {
+    }
+
+    /**
+     * Get ModelStub by id
+     */
+    public function show($id): JsonResponse
+    {
+        $modelStub = ModelStub::find($id);
+
+        if (empty($modelStub)) {
+            return $this->sendError('ModelStub not found');
+        }
+        return $this->sendResponse($modelStub->toArray(), 'Todo retrieved successfully');
+    }
+
+    /**
+     * Save ModelStub to database
+     */
+    public function store(Request $request): JsonResponse
+    {
+        $validated = $request->validate(ModelStub::$rules);
+        $modelStub = ModelStub::create($validated);
+        return $this->sendResponse($modelStub->toArray(), 'ModelStub saved successfully');
+    }
+}

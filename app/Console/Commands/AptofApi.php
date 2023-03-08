@@ -54,7 +54,9 @@ class AptofApi extends Command
         $this->createModel($model);
         $this->createMigration($model);
         $this->createFactory($model);
-        $this->createController($model, $controller);
+        $this->createController($model, $controller); //Stub incomplete
+        // TODO: GenerateTest
+        // TODO: UpdateRoute
     }
 
     private function setup()

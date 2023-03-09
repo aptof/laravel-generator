@@ -3,7 +3,9 @@
 namespace App\Console\Commands;
 
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Pluralizer;
+use Illuminate\Support\Str;
 use Exception;
 use Illuminate\Console\Command;
 
@@ -33,13 +35,15 @@ class AptofApi extends Command
     private $apiControllerStub = './stubs/ApiController.stub';
     private $factoryStub = './stubs/Factory.stub';
     private $modelStub = './stubs/Model.stub';
-    private Filesystem $files;
 
-    public function __construct(Filesystem $files)
-    {
-        parent::__construct();
-        $this->files = $files;
-    }
+    private $routeStub = './stubs/Route.stub';
+    private $api = './routes/api.php';
+    private $apiStub = './stubs/Api.stub';
+
+    private $testFolder = './tests/Apis';
+    private $testTraitStub = './stubs/TestTrait.stub';
+    private $testTraitPath = './tests/ApiTestTrait.php';
+    private $testStub = './stubs/Test.stub';
 
     /**
      * Execute the console command.
@@ -54,35 +58,52 @@ class AptofApi extends Command
         $this->createModel($model);
         $this->createMigration($model);
         $this->createFactory($model);
-        $this->createController($model, $controller); //Stub incomplete
-        // TODO: GenerateTest
-        // TODO: UpdateRoute
+        $this->createController($model, $controller);
+        $this->createTest($model, $controller);
+        $this->addRoute($model, $controller);
     }
 
     private function setup()
     {
-        if (!$this->files->isDirectory($this->apiFolder)) {
-            $this->files->makeDirectory($this->apiFolder, 0777, true, true);
+        if (!File::isDirectory($this->apiFolder)) {
+            File::makeDirectory($this->apiFolder, 0777, true, true);
+
+            // Update route file to insert //CURSOR
+            $this->updateRouteFile();
         }
 
-        if (!$this->files->exists($this->baseControllerPath)) {
+        if (!File::exists($this->baseControllerPath)) {
             $this->createBaseController();
         }
+
+        if (!File::isDirectory($this->testFolder)) {
+            File::makeDirectory($this->testFolder);
+
+            //CreateTestTrait
+            $content = File::get($this->testTraitStub);
+            File::put($this->testTraitPath, $content);
+        }
+    }
+
+    private function updateRouteFile()
+    {
+        $content = File::get($this->apiStub);
+        File::put($this->api, $content);
     }
 
     private function ensureErrorFree(string $model, string $controller)
     {
-        if ($this->files->exists($this->getModelPath($model))) {
+        if (File::exists($this->getModelPath($model))) {
             $this->error("Model $model already exists.");
             throw new Exception("Model $model already exists.");
         }
 
-        if ($this->files->exists($this->getApiControllerPath($controller))) {
+        if (File::exists($this->getApiControllerPath($controller))) {
             $this->error("Controller $controller already exists.");
             throw new Exception("Controller $controller already exists.");
         }
 
-        if ($this->files->exists($this->getFactoryPath($model))) {
+        if (File::exists($this->getFactoryPath($model))) {
             $this->error("Factory {$model}Factory already exists");
             throw new Exception("Factory {$model}Factory already exists");
         }
@@ -106,20 +127,25 @@ class AptofApi extends Command
         return $this->controllerPath . $controller . '.php';
     }
 
+    private function getApiTestPath(string $controller)
+    {
+        return $this->testFolder . '/' . $controller . 'Test.php';
+    }
+
     private function createBaseController(): void
     {
-        $content = file_get_contents($this->baseControllerStub);
+        $content = File::get($this->baseControllerStub);
         $path = $this->baseControllerPath;
-        $this->files->put($path, $content);
+        File::put($path, $content);
         $this->info("File: {$path} is created.");
     }
 
     private function createModel(string $model)
     {
-        $content = file_get_contents($this->modelStub);
-        $content = str_replace('ModelStub', $model, $content);
+        $content = File::get($this->modelStub);
+        $content = Str::replace('ModelStub', $model, $content);
         $path = $this->getModelPath($model);
-        $this->files->put($path, $content);
+        File::put($path, $content);
         $this->info("Model: {$model} is created.");
     }
 
@@ -132,20 +158,47 @@ class AptofApi extends Command
 
     public function createFactory(string $model)
     {
-        $content = file_get_contents($this->factoryStub);
-        $content = str_replace('ModelStub', $model, $content);
+        $content = File::get($this->factoryStub);
+        $content = Str::replace('ModelStub', $model, $content);
         $path = $this->getFactoryPath($model);
-        $this->files->put($path, $content);
+        File::put($path, $content);
         $this->info("Factory {$model}Factory is created");
     }
 
 
     public function createController(string $model, string $controller)
     {
-        $content = file_get_contents($this->apiControllerStub);
+        $content = File::get($this->apiControllerStub);
+        $content = Str::replace('ModelStub', $model, $content);
+        $content = Str::replace('modelStub', Str::camel($model), $content);
+        $content = Str::replace('ControllerStub', $controller, $content);
+
         $path = $this->getApiControllerPath($controller);
-        // ControllerStub, ModelStub modelStub
-        $this->files->put($path, $content);
+        File::put($path, $content);
         $this->info("Controller {$controller} is created");
+    }
+
+    public function addRoute(string $model, string $controller)
+    {
+        $stubContent = File::get($this->routeStub);
+        $stubContent = Str::replace('modelsStub', Pluralizer::plural(Str::lower($model)), $stubContent);
+        $stubContent = Str::replace('ControllerStub', $controller, $stubContent);
+
+        $content = File::get($this->api);
+        $content = Str::replace('//CURSOR', $stubContent, $content);
+        File::put($this->api, $content);
+        $this->info("Routes are updated");
+    }
+
+    public function createTest(string $model, string $controller)
+    {
+        $content = File::get($this->testStub);
+        $content = Str::replace('ModelStub', $model, $content);
+        $content = Str::replace('modelStub', Str::lower($model), $content);
+        $content = Str::replace('modelsStub', Pluralizer::plural(Str::lower($model)), $content);
+        $content = Str::replace('ControllerStub', $controller, $content);
+
+        File::put($this->getApiTestPath($controller), $content);
+        $this->inf("{$controller}Test is created");
     }
 }

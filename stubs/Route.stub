@@ -1,0 +1,4 @@
+Route::resource('modelsStub', App\Http\Controllers\Api\ControllerStub::class)
+        ->except(['create', 'edit']);
+
+    //CURSOR

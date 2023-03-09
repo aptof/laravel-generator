@@ -9,8 +9,12 @@ use App\Http\Controllers\BaseController;
 
 class ControllerStub extends BaseController
 {
+    /**
+     * returns paginated ModelStub
+     */
     public function index()
     {
+        return ModelStub::paginate(10);
     }
 
     /**
@@ -34,5 +38,38 @@ class ControllerStub extends BaseController
         $validated = $request->validate(ModelStub::$rules);
         $modelStub = ModelStub::create($validated);
         return $this->sendResponse($modelStub->toArray(), 'ModelStub saved successfully');
+    }
+
+    /**
+     * Update ModelStub
+     */
+    public function update($id, Request $request): JsonResponse
+    {
+        $validated = $request->validate(ModelStub::$rules);
+        $modelStub = ModelStub::find($id);
+
+        if (empty($modelStub)) {
+            return $this->sendError("ModelStub not found");
+        }
+
+        $modelStub->fill($validated);
+        $modelStub->save();
+
+        return $this->sendResponse($modelStub->toArray(), 'ModelStub updated successfully');
+    }
+
+    /**
+     * Delete ModelStub
+     */
+    public function destroy($id): JsonResponse
+    {
+        $modelStub = ModelStub::find($id);
+        if (empty($modelStub)) {
+            return $this->sendError("ModelStub not found");
+        }
+
+        $modelStub->delete();
+
+        return $this->sendSuccess('ModelStub deleted successfully');
     }
 }

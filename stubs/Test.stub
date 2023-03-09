@@ -1,0 +1,82 @@
+<?php
+
+namespace Tests\APIs;
+
+use Illuminate\Foundation\Testing\WithoutMiddleware;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Tests\TestCase;
+use Tests\ApiTestTrait;
+use App\Models\ModelStub;
+
+class ControllerStubTest extends TestCase
+{
+    use ApiTestTrait, WithoutMiddleware, DatabaseTransactions;
+
+    /**
+     * @test
+     */
+    public function test_create_modelStub()
+    {
+        $modelStub = ModelStub::factory()->make()->toArray();
+
+        $this->response = $this->json(
+            'POST',
+            '/api/modelsStub', $modelStub
+        );
+
+        $this->assertApiResponse($modelStub);
+    }
+
+    /**
+     * @test
+     */
+    public function test_read_modelStub()
+    {
+        $modelStub = ModelStub::factory()->create();
+
+        $this->response = $this->json(
+            'GET',
+            '/api/modelsStub/'.$modelStub->id
+        );
+
+        $this->assertApiResponse($modelStub->toArray());
+    }
+
+    /**
+     * @test
+     */
+    public function test_update_modelStub()
+    {
+        $modelStub = ModelStub::factory()->create();
+        $editedModelStub = ModelStub::factory()->make()->toArray();
+
+        $this->response = $this->json(
+            'PUT',
+            '/api/modelsStub/'.$modelStub->id,
+            $editedModelStub
+        );
+
+        $this->assertApiResponse($editedModelStub);
+    }
+
+    /**
+     * @test
+     */
+    public function test_delete_modelStub()
+    {
+        $modelStub = ModelStub::factory()->create();
+
+        $this->response = $this->json(
+            'DELETE',
+             '/api/modelsStub/'.$modelStub->id
+         );
+
+        $this->assertApiSuccess();
+        $this->response = $this->json(
+            'GET',
+            '/api/modelsStub/'.$modelStub->id
+        );
+
+        $this->response->assertStatus(404);
+    }
+}

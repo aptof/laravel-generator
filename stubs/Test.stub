@@ -3,7 +3,7 @@
 namespace Tests\APIs;
 
 use Illuminate\Foundation\Testing\WithoutMiddleware;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use Tests\ApiTestTrait;
 use App\Models\ModelStub;
@@ -21,7 +21,8 @@ class ControllerStubTest extends TestCase
 
         $this->response = $this->json(
             'POST',
-            '/api/modelsStub', $modelStub
+            '/api/modelsStub',
+            $modelStub
         );
 
         $this->assertApiResponse($modelStub);

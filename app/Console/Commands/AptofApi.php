@@ -199,6 +199,6 @@ class AptofApi extends Command
         $content = Str::replace('ControllerStub', $controller, $content);
 
         File::put($this->getApiTestPath($controller), $content);
-        $this->inf("{$controller}Test is created");
+        $this->info("{$controller}Test is created");
     }
 }
